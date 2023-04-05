@@ -1,88 +1,64 @@
+# I have a website called "http://bdlaws.minlaw.gov.bd/laws-of-bangladesh.html". In this website, there is a ul tag with a class name of "divider-2". Inside this ul tag, there are 49 li tags and inside each li tag, there is an "a" tag. Now, I want to click on all of the links after the 8th li tag. When I click on each link, a new page opens with a table of contents. Inside the table, there is a <tbody> tag, and within that <tbody> tag, there are several <tr> tags. I want to click on the <a> tag inside the 2nd <td> tag of each <tr> tag.
+
+# Once I click on each link, a new page opens. Within this new page, there is a <a> tag with a class of "view-full-law-button". I want to click on that link as well. After clicking on the link, I want to read all of the content of the <div> tag with a class of "boxed-layout".
+
+# After reading the content, I want to create an array of objects. Here's an example of what the array would look like:
+
+# [
+# {
+# title: "বাংলা ভাষা প্রচলন আইন, ১৯৮৭",
+# content: "নপ্রজাতন্ত্রী বাংলাদেশের সংবিধানের ৩নং অনুচ্ছেদের বিধানকে পূর্ণরূপে কার্যকর করিবার উদ্দেশ্যে প্রণীত আইন৷ যেহেতু সংবিধানের ৩ অনুচ্ছেদের বিধানাবলী পূর্ণরূপে কার্যকর করিবার এবং তৎসংক্রান্ত বিষয়ের জন্য বিধান প্রণয়ন করা সমীচীন ও প্রয়োজনীয়; সেহেতু এতদ্‌দ্বারা নিম্নরূপ আইন করা হইল:-"
+# },
+# ...
+# ]
+
+# After creating the array of objects, I want to loop through the <tr> tags of the <tbody> tag again. The title for each object in the array will be the title of the HTML page.
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
+import json
 
-# create a webdriver instance
-driver = webdriver.Chrome()
+driver=webdriver.Chrome()
 
-# navigate to the website
-driver.get("http://bdlaws.minlaw.gov.bd/laws-of-bangladesh.html")
 
-# find the ul tag with class "divider-2"
-ul_element = driver.find_element(By.CLASS_NAME, "divider-2")
-
-# get all the li tags inside the ul tag
-li_elements = ul_element.find_elements(By.TAG_NAME, "li")
-
-# loop through the li tags starting from index 8
-for li in li_elements[26:]:
-    # find the a tag inside the li tag and click it
-    a_element = li.find_element(By.TAG_NAME, "a")
-    a_element.click()
-
-    # wait for the table of content to appear
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
-
-    # get all the tr tags inside the tbody tag
-    tbody_element = driver.find_element(By.TAG_NAME, "tbody")
-    tr_elements = tbody_element.find_elements(By.TAG_NAME, "tr")
-
-    # create an empty list to store the data
-    data_list = []
-
-    # loop through the tr tags
-    num_pages_visited = 0
-
-    for tr in tr_elements:
-        try:
-            # get the 2nd td tag inside the tr tag
-            td_element = tr.find_elements(By.TAG_NAME, "td")[1]
-
-            # find the a tag inside the td tag and click it
-            a_element = td_element.find_element(By.TAG_NAME, "a")
+def scrape(links):
+    result=[]
+    for link in links:
+        driver.get(link)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
+        table_element=driver.find_element(By.TAG_NAME,'tbody')
+        tr_elements=table_element.find_elements(By.TAG_NAME,'tr')
+        for tr in tr_elements:
+            td_elements=tr.find_elements(By.TAG_NAME,'td')
+            a_element=td_elements[1].find_element(By.TAG_NAME,'a')
             a_element.click()
-
-            # wait for the content to appear
             WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "boxed-layout")))
-
-            # get the title and content of the page
-            title = driver.title
             view_full_law_button = driver.find_element(By.CLASS_NAME,"view-full-law-button")
             view_full_law_button.click()
             content = driver.find_element(By.CLASS_NAME, "boxed-layout").text
-
-            # create a dictionary to store the data
-            data_dict = {"title": title, "content": content}
-
-            # add the dictionary to the list
-            data_list.append(data_dict)
-
-            # increase the count of the number of pages visited
-            num_pages_visited += 1
-            print(title,driver.current_url)
+            data_dict={"title":driver.title,"content":content}
+            result.append(data_dict)
             driver.execute_script("window.history.go(-2)")
-        except:
-            WebDriverWait(driver, 30).until(EC.staleness_of(a_element))
-            driver.execute_script(f"window.history.go(-{lang(tr_elements)})")
-            # print("2",driver.title,li)
-            print("✅",driver.current_url)
-            break
-        # go back to the previous page
-        # if num_pages_visited == len(tr_elements):
-        #     print("Root Page",len(tr_elements),num_pages_visited)
-        #     # if this is the last page, go back to the root page
-        #     # driver.execute_script("window.history.go(-" + str(num_pages_visited) + ")")          
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
+            table_element=driver.find_element(By.TAG_NAME,'tbody')
+            tr_elements=table_element.find_elements(By.TAG_NAME,'tr')
+        driver.close()
+        return result
+
+
+
             
-            
-        # else:
-        #     # WebDriverWait(driver, 10).until(EC.staleness_of(a_element))
-        #     # if there are more pages to visit, go back to the previous page         
-          
-       
-    print("💖",driver.current_url)
-       
-    
-# close the webdriver instance
-driver.quit()
+
+
+result=scrape(['http://bdlaws.minlaw.gov.bd/volume-27.html'])
+
+
+def save_to_file(data):
+   result_josn= json.dumps(data,ensure_ascii=False)
+   with open('result.json','w',encoding="utf-8") as f:
+    f.write(result_josn)
+
+save_to_file(result)

@@ -22,3 +22,12 @@ for link in links:
     results.append({"title": title, "content": content})
 
 print(results)
+
+
+# -------------
+# list = list()
+# for i in pageList:
+#        url = i....
+#        list.append(url)
+# for index in list:
+#     your code

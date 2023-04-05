@@ -67,7 +67,7 @@ for li in li_elements[26:]:
             WebDriverWait(driver, 30).until(EC.staleness_of(a_element))
             driver.execute_script(f"window.history.go(-{lang(tr_elements)})")
             # print("2",driver.title,li)
-            print("✅",driver.current_url)
+            # print("✅",driver.current_url)
             break
         # go back to the previous page
         # if num_pages_visited == len(tr_elements):
@@ -80,8 +80,8 @@ for li in li_elements[26:]:
         #     # WebDriverWait(driver, 10).until(EC.staleness_of(a_element))
         #     # if there are more pages to visit, go back to the previous page         
           
-       
-    print("💖",driver.current_url)
+    # driver.execute_script(f"window.history.go(-{})")
+    # print("💖",driver.current_url)
        
     
 # close the webdriver instance
