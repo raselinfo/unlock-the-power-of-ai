@@ -26,7 +26,7 @@ driver=webdriver.Chrome()
 
 def scrape(links):
     result=[]
-    for link in links:
+    for index,link in enumerate(links):
         driver.get(link)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
         table_element=driver.find_element(By.TAG_NAME,'tbody')
@@ -41,20 +41,12 @@ def scrape(links):
             content = driver.find_element(By.CLASS_NAME, "boxed-layout").text
             data_dict={"title":driver.title,"content":content}
             result.append(data_dict)
-            driver.execute_script("window.history.go(-2)")
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "tbody")))
-            table_element=driver.find_element(By.TAG_NAME,'tbody')
-            tr_elements=table_element.find_elements(By.TAG_NAME,'tr')
-        driver.close()
-        return result
-
-
-
-            
-
-
+            driver.execute_script("window.history.go(-2)")  
+    return result  
+    
 result=scrape(['http://bdlaws.minlaw.gov.bd/volume-27.html'])
-
+driver.close()
+print(result[0])
 
 def save_to_file(data):
    result_josn= json.dumps(data,ensure_ascii=False)
